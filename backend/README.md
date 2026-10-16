@@ -2,12 +2,10 @@
 
 NestJS API for the HMS diabetes glycemic control platform. It serves the web portals and the Android app, enforces multi-tenant isolation, runs background jobs and relays WebRTC signalling.
 
-> **Status: scaffold.** Folders and empty files are in place. Implementation starts in Phase 1 (see the [root roadmap](../README.md#18-roadmap)).
-
 ## Stack
 
 - Node.js and TypeScript, **NestJS** (modular monolith)
-- **PostgreSQL** with **Prisma** ORM and row-level security
+- **PostgreSQL** in **Neon** with **Prisma** ORM and row-level security
 - **Redis** with **BullMQ** for queues and scheduled jobs
 - **Socket.IO** for call signalling and presence
 - class-validator and class-transformer for DTO validation
@@ -30,125 +28,94 @@ backend/
 │   ├── common/
 │   │   ├── decorators/          @Roles, @CurrentUser, @CurrentTenant, @Public
 │   │   ├── guards/              JwtAuthGuard, RolesGuard, TenantGuard
-│   │   ├── interceptors/        audit logging, response transform
+│   │   ├── interceptors/        audit logging
 │   │   ├── filters/             HTTP exception filter
-│   │   ├── pipes/               validation pipe
-│   │   ├── tenancy/             tenant context, middleware, Prisma extension
+│   │   ├── tenancy/             tenant context, middleware
 │   │   └── utils/               pagination, glucose units, CSV, pseudonymisation
-│   ├── modules/                 domain modules (below)
+│   ├── modules/                 domain modules (auth, tenants, glucose, triage, etc.)
 │   ├── queues/                  BullMQ processors
 │   └── realtime/                Socket.IO gateways
 └── test/                        e2e tests, including tenant isolation
 ```
 
-## Modules
+## Environment Variables
 
-Each module folder contains `*.module.ts`, `*.controller.ts`, `*.service.ts` and a `dto/` folder.
+Copy `.env.example` to `.env`. Required variables:
 
-| Module | Responsibility |
+| Variable | Description / Example |
 |---|---|
-| `auth` | Login, refresh tokens, password reset, MFA, accept invitation |
-| `tenants` | Hospital CRUD and settings (Super Admin) |
-| `invitations` | Hospital Admin invites clinicians and patients by email or SMS |
-| `users` | Accounts, status, role changes |
-| `patients` | Patient profiles, clinician assignment |
-| `clinicians` | Clinician profiles and specialty |
-| `glucose` | Blood glucose readings |
-| `hba1c` | HbA1c results and 3-month trend |
-| `medications` | Medication list and dose schedule |
-| `refills` | Refill due-date calculation and refill requests (`refill-reminder.scheduler.ts`) |
-| `appointments` | Scheduling and reminders |
-| `telemedicine` | Call sessions, TURN credentials, in-call vitals |
-| `triage` | Risk rules engine and cohort tiers (`risk-rules.engine.ts`, `risk-rules.defaults.ts`) |
-| `analytics` | Longitudinal and cohort analytics |
-| `exports` | Async CSV export with pseudonymisation |
-| `notifications` | Push (FCM), SMS (Africa's Talking) and email providers |
-| `audit` | Audit log write and query |
-| `consents` | Versioned consent records |
+| `NODE_ENV` | `production` or `development` |
+| `PORT` | Dynamic web port assigned by Render (default: `3000`) |
+| `DATABASE_URL` | Neon PostgreSQL connection string with `?sslmode=require` |
+| `REDIS_URL` | Redis connection string (e.g. Upstash or Render Redis) |
+| `JWT_ACCESS_SECRET` | Secret key for signing access JWTs |
+| `JWT_ACCESS_TTL` | Access token TTL (e.g., `15m`) |
+| `JWT_REFRESH_SECRET` | Secret key for signing refresh JWTs |
+| `JWT_REFRESH_TTL` | Refresh token TTL (e.g., `7d`) |
+| `CORS_ORIGINS` | Comma-separated list of allowed frontend origins |
+| `FCM_*` | Firebase Cloud Messaging credentials |
+| `AT_*` | Africa's Talking SMS API credentials |
+| `SMTP_*` | Email provider SMTP credentials |
+| `TURN_*` | STUN/TURN WebRTC server credentials |
 
-## Multi-tenancy
+---
 
-Shared schema with `tenant_id` on tenant-owned tables.
+## Deploying to Render with Neon PostgreSQL
 
-1. `tenant.middleware.ts` reads `tenantId` from the verified JWT and stores it in `tenant.context.ts` (AsyncLocalStorage).
-2. `tenant-prisma.extension.ts` automatically adds `tenantId` to reads and writes.
-3. PostgreSQL **row-level security** policies (bootstrapped in `infra/postgres/init.sql` and migrations) read the tenant from a per-request session setting, as a second line of defence.
-4. The Super Admin has no tenant. Cross-tenant operations set an explicit tenant context and are audit-logged.
-5. `test/tenant-isolation.e2e-spec.ts` must prove that hospital A can never read or write hospital B's data.
+### 1. Provision PostgreSQL on Neon
+1. Create a database on [Neon.tech](https://neon.tech).
+2. Copy the connection string provided in the Neon console. Ensure it includes `?sslmode=require`:
+   ```
+   postgresql://<user>:<password>@<neon-hostname>.neon.tech/<dbname>?sslmode=require
+   ```
 
-## Authentication and authorisation
+### 2. Configure Web Service on Render
+1. Log in to [Render](https://render.com) and click **New +** -> **Web Service**.
+2. Connect your repository and select the repository root or specify the root directory as `backend`.
+3. Set the configuration details as follows:
+   - **Name:** `hms-backend`
+   - **Environment:** `Node`
+   - **Root Directory:** `backend`
+   - **Build Command:**
+     ```bash
+     npm install && npm run build && npx prisma generate
+     ```
+   - **Start Command:**
+     ```bash
+     npx prisma migrate deploy && npm run prisma:seed && node dist/src/main.js
+     ```
 
-- Short-lived JWT access token (about 15 minutes) and a rotating refresh token
-- Argon2id password hashing
-- TOTP MFA required for admins and clinicians
-- `@Roles()` and `RolesGuard` for role checks, `TenantGuard` for tenant scope
-- Patients can only access their own records
+### 3. Set Environment Variables on Render
+Under the **Environment** tab of your Render Web Service, add the following variables:
+- `NODE_ENV`: `production`
+- `DATABASE_URL`: `postgresql://<user>:<password>@<neon-hostname>.neon.tech/<dbname>?sslmode=require`
+- `REDIS_URL`: `redis://:<password>@<redis-hostname>:<port>` (optional if using Redis for BullMQ)
+- `JWT_ACCESS_SECRET`: `<your-random-32-char-secret>`
+- `JWT_REFRESH_SECRET`: `<your-random-32-char-secret>`
+- `CORS_ORIGINS`: `https://your-frontend-app.onrender.com`
 
-## Background jobs
+---
 
-| Queue / processor | Purpose |
-|---|---|
-| `refill-reminders` | Computes refill due dates and sends reminders |
-| `appointment-reminders` | 24 hour and 1 hour reminders |
-| `risk-recalculation` | Recomputes triage tiers when new readings or HbA1c arrive, and on a nightly schedule |
-| `export-jobs` | Builds CSV files and produces expiring download links |
-
-## Real-time
-
-| Namespace | Purpose |
-|---|---|
-| `/signaling` | WebRTC offer, answer and ICE exchange, join and leave |
-| `/presence` | Whether a patient or clinician is online for a call |
-
-## Environment variables
-
-Copy `.env.example` to `.env`. Planned variables:
-
-| Variable | Purpose |
-|---|---|
-| `NODE_ENV`, `PORT` | Runtime |
-| `DATABASE_URL` | PostgreSQL connection |
-| `REDIS_URL` | Redis connection |
-| `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | Token signing |
-| `JWT_ACCESS_TTL`, `JWT_REFRESH_TTL` | Token lifetimes |
-| `CORS_ORIGINS` | Allowed web origins |
-| `FCM_PROJECT_ID`, `FCM_CLIENT_EMAIL`, `FCM_PRIVATE_KEY` | Push notifications |
-| `AT_USERNAME`, `AT_API_KEY`, `AT_SENDER_ID` | Africa's Talking SMS |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | Email |
-| `TURN_URLS`, `TURN_SECRET` | TURN credentials for WebRTC |
-| `EXPORT_LINK_TTL_MINUTES` | Lifetime of export download links |
-
-Never commit real secrets.
-
-## Planned scripts
+## Local Development & Testing
 
 ```bash
+cd backend
 npm install
-npx prisma migrate dev      # apply migrations
-npx prisma db seed          # seed Super Admin and demo hospital
-npm run start:dev           # watch mode
+cp .env.example .env
+
+# Generate Prisma client and run dev migrations
+npx prisma generate
+npx prisma migrate dev
+
+# Seed default Super Admin & demo hospital
+npm run prisma:seed
+
+# Start development server
+npm run start:dev
+
+# Run tests
+npm run test
 npm run build
-npm run lint
-npm run test                # unit tests
-npm run test:e2e            # end-to-end tests
 ```
 
-## Conventions
-
-- Validate all input with DTOs (whitelist, forbid unknown fields)
-- Keep controllers thin. Put business logic in services and pure functions
-- Pure rules such as risk triage and unit conversion get unit tests
-- Consistent error shape: `{ statusCode, error, message, details? }`
-- Paginate list endpoints (`page`, `pageSize`, or cursor)
-- Never log patient data or secrets
-- Every patient-data access goes through the audit interceptor
-
-## Testing
-
-- **Unit:** triage rules, glucose unit conversion, refill date maths, pseudonymisation
-- **E2E:** auth flows, RBAC matrix, **tenant isolation**
-- Test database via Docker Compose
-
-## Docker
-
-`Dockerfile` builds a production image. `docker-compose.yml` at the repo root provides PostgreSQL, Redis and coturn for development.
+API Documentation will be served at `http://localhost:3000/api/docs`.
