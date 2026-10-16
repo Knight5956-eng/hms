@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { authService } from '../services/authService';
-import { apiClient, getAccessToken } from '../services/apiClient';
+import { apiClient, getAccessToken, getRefreshToken } from '../services/apiClient';
 import { UserRole } from '../types';
 
 vi.mock('../services/apiClient', async (importOriginal) => {
@@ -14,7 +14,7 @@ vi.mock('../services/apiClient', async (importOriginal) => {
   };
 });
 
-describe('authService.login', () => {
+describe('authService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -51,9 +51,10 @@ describe('authService.login', () => {
     });
     expect(result).toEqual(mockResponse.data);
     expect(getAccessToken()).toBe('access-token-123');
+    expect(getRefreshToken()).toBe('refresh-token-456');
   });
 
-  it('should process login with nested tokens response structure ({ tokens: { accessToken }, user })', async () => {
+  it('should process login with nested tokens response structure ({ tokens: { accessToken, refreshToken }, user })', async () => {
     const mockUser = {
       id: 'd382b660-5217-424b-a309-2952bb9f03e5',
       email: 'superadmin@hms.health',
@@ -83,5 +84,16 @@ describe('authService.login', () => {
 
     expect(result).toEqual(mockResponse.data);
     expect(getAccessToken()).toBe('nested-token-789');
+    expect(getRefreshToken()).toBe('nested-refresh-012');
+  });
+
+  it('should clear tokens on logout', async () => {
+    vi.mocked(apiClient.post).mockResolvedValueOnce({ data: {} });
+
+    await authService.logout();
+
+    expect(apiClient.post).toHaveBeenCalledWith('/auth/logout');
+    expect(getAccessToken()).toBeNull();
+    expect(getRefreshToken()).toBeNull();
   });
 });
