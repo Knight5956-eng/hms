@@ -31,6 +31,7 @@ import { ExportsModule } from './modules/exports/exports.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { ConsentsModule } from './modules/consents/consents.module';
+import { HealthModule } from './modules/health/health.module';
 
 import { RealtimeModule } from './realtime/realtime.module';
 import { QueuesModule } from './queues/queues.module';
@@ -61,6 +62,7 @@ import { QueuesModule } from './queues/queues.module';
     NotificationsModule,
     AuditModule,
     ConsentsModule,
+    HealthModule,
     RealtimeModule,
     QueuesModule,
   ],
