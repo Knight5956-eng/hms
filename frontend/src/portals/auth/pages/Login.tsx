@@ -23,8 +23,9 @@ export const Login: React.FC = () => {
       const res = await authService.login({ email, password });
       setUser(res.user);
       navigate(getRoleRedirectPath(res.user.role));
-    } catch (err: unknown) {
-      setError('Invalid email or password');
+    } catch (err: any) {
+      const message = err?.response?.data?.message || 'Invalid email or password';
+      setError(message);
     } finally {
       setLoading(false);
     }

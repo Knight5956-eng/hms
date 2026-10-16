@@ -4,7 +4,10 @@ import { AuthResponse, User } from '../types';
 export const authService = {
   async login(data: { email: string; password: string }): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/login', data);
-    setAccessToken(response.data.tokens.accessToken);
+    const token = response.data.accessToken || response.data.tokens?.accessToken;
+    if (token) {
+      setAccessToken(token);
+    }
     return response.data;
   },
 
