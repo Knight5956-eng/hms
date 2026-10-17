@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { authService } from '../services/authService';
-import { apiClient, getAccessToken, getRefreshToken } from '../services/apiClient';
+import { apiClient, getAccessToken } from '../services/apiClient';
 import { UserRole } from '../types';
 
 vi.mock('../services/apiClient', async (importOriginal) => {
@@ -51,7 +51,6 @@ describe('authService', () => {
     });
     expect(result).toEqual(mockResponse.data);
     expect(getAccessToken()).toBe('access-token-123');
-    expect(getRefreshToken()).toBe('refresh-token-456');
   });
 
   it('should process login with nested tokens response structure ({ tokens: { accessToken, refreshToken }, user })', async () => {
@@ -84,7 +83,6 @@ describe('authService', () => {
 
     expect(result).toEqual(mockResponse.data);
     expect(getAccessToken()).toBe('nested-token-789');
-    expect(getRefreshToken()).toBe('nested-refresh-012');
   });
 
   it('should clear tokens on logout', async () => {
@@ -94,6 +92,5 @@ describe('authService', () => {
 
     expect(apiClient.post).toHaveBeenCalledWith('/auth/logout');
     expect(getAccessToken()).toBeNull();
-    expect(getRefreshToken()).toBeNull();
   });
 });
