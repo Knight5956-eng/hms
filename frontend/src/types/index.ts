@@ -26,9 +26,7 @@ export interface AuthTokens {
 
 export interface AuthResponse {
   user: User;
-  accessToken?: string;
-  refreshToken?: string;
-  tokens?: AuthTokens;
+  tokens: AuthTokens;
 }
 
 export interface Tenant {

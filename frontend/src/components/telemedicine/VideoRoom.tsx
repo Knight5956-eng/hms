@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { PhoneOff } from 'lucide-react';
 import { Button } from '../ui/Button';
 
@@ -9,11 +9,26 @@ export interface VideoRoomProps {
 }
 
 export const VideoRoom: React.FC<VideoRoomProps> = ({ localStream, remoteStream, onEndCall }) => {
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
+
+  useEffect(() => {
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
+
   return (
     <div className="relative w-full h-[450px] bg-slate-900 rounded-card overflow-hidden flex items-center justify-center">
       {remoteStream ? (
         <video
-          ref={(ref) => ref && (ref.srcObject = remoteStream)}
+          ref={remoteVideoRef}
           autoPlay
           playsInline
           className="w-full h-full object-cover"
@@ -27,7 +42,7 @@ export const VideoRoom: React.FC<VideoRoomProps> = ({ localStream, remoteStream,
       {localStream && (
         <div className="absolute top-4 right-4 w-36 h-28 bg-slate-800 border-2 border-white/20 rounded-lg overflow-hidden shadow-lg">
           <video
-            ref={(ref) => ref && (ref.srcObject = localStream)}
+            ref={localVideoRef}
             autoPlay
             muted
             playsInline

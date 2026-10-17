@@ -1,17 +1,10 @@
-import { apiClient, setAccessToken, setRefreshToken } from './apiClient';
+import { apiClient, setAccessToken } from './apiClient';
 import { AuthResponse, User } from '../types';
 
 export const authService = {
   async login(data: { email: string; password: string }): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/login', data);
-    const token = response.data.accessToken || response.data.tokens?.accessToken;
-    const refToken = response.data.refreshToken || response.data.tokens?.refreshToken;
-    if (token) {
-      setAccessToken(token);
-    }
-    if (refToken) {
-      setRefreshToken(refToken);
-    }
+    setAccessToken(response.data.tokens.accessToken);
     return response.data;
   },
 
@@ -20,7 +13,6 @@ export const authService = {
       await apiClient.post('/auth/logout');
     } finally {
       setAccessToken(null);
-      setRefreshToken(null);
     }
   },
 
