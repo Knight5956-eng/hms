@@ -10,7 +10,7 @@ export interface HealthCheckDetail {
 }
 
 export interface HealthCheckResponse {
-  status: 'ok' | 'error';
+  status: 'ok' | 'degraded' | 'error';
   timestamp: string;
   uptime: number;
   environment: string;
@@ -38,8 +38,14 @@ export class HealthService {
     const dbCheck = await this.checkDatabase();
     const redisCheck = await this.checkRedis();
 
-    const isHealthy = dbCheck.status === 'up' && redisCheck.status !== 'down';
-    const overallStatus = isHealthy ? 'ok' : 'error';
+    const isHealthy = dbCheck.status === 'up';
+    let overallStatus: 'ok' | 'degraded' | 'error' = 'ok';
+
+    if (!isHealthy) {
+      overallStatus = 'error';
+    } else if (redisCheck.status === 'down') {
+      overallStatus = 'degraded';
+    }
 
     const memoryUsage = process.memoryUsage();
 
@@ -98,10 +104,11 @@ export class HealthService {
       client = new Redis(redisUrl, {
         maxRetriesPerRequest: 1,
         connectTimeout: 2000,
-        enableOfflineQueue: false,
+        lazyConnect: true,
       });
       client.on('error', () => {});
 
+      await client.connect();
       await client.ping();
       await client.quit();
 
@@ -111,7 +118,9 @@ export class HealthService {
       };
     } catch (error: any) {
       if (client) {
-        client.disconnect();
+        try {
+          client.disconnect();
+        } catch (_) {}
       }
       this.logger.warn(`Redis health check failed: ${error.message}`);
       return {
