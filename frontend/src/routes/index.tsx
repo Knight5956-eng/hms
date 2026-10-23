@@ -5,6 +5,8 @@ import { AppShell } from '../components/layout/AppShell';
 
 import { Login } from '../portals/auth/pages/Login';
 import { ForgotPassword } from '../portals/auth/pages/ForgotPassword';
+import { ResetPassword } from '../portals/auth/pages/ResetPassword';
+import { AcceptInvitation } from '../portals/auth/pages/AcceptInvitation';
 
 // Patient
 import { PatientHome } from '../portals/patient/pages/Home';
@@ -36,6 +38,7 @@ import { HospitalSettings } from '../portals/hospital-admin/pages/HospitalSettin
 // Super Admin
 import { SuperAdminDashboard } from '../portals/super-admin/pages/Dashboard';
 import { SuperAdminTenants } from '../portals/super-admin/pages/Tenants';
+import { SuperAdminTenantDetail } from '../portals/super-admin/pages/TenantDetail';
 import { SuperAdminPlatformAdmins } from '../portals/super-admin/pages/PlatformAdmins';
 import { SuperAdminAuditLogs } from '../portals/super-admin/pages/AuditLogs';
 import { SuperAdminSystemSettings } from '../portals/super-admin/pages/SystemSettings';
@@ -45,6 +48,8 @@ import { UserRole } from '../types';
 const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/forgot-password', element: <ForgotPassword /> },
+  { path: '/reset-password', element: <ResetPassword /> },
+  { path: '/accept-invitation', element: <AcceptInvitation /> },
 
   // Patient Portal
   {
@@ -102,6 +107,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/super-admin', element: <AppShell><SuperAdminDashboard /></AppShell> },
       { path: '/super-admin/tenants', element: <AppShell><SuperAdminTenants /></AppShell> },
+      { path: '/super-admin/tenants/:id', element: <AppShell><SuperAdminTenantDetail /></AppShell> },
       { path: '/super-admin/platform-admins', element: <AppShell><SuperAdminPlatformAdmins /></AppShell> },
       { path: '/super-admin/audit-logs', element: <AppShell><SuperAdminAuditLogs /></AppShell> },
       { path: '/super-admin/system-settings', element: <AppShell><SuperAdminSystemSettings /></AppShell> },
