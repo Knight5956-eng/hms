@@ -62,7 +62,7 @@ class RefillsViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSubmitting = true)
-            when (val res = refillRepository.requestRefill(medId, _uiState.value.notes)) {
+            when (val res = refillRepository.requestRefill(medId!!, _uiState.value.notes)) {
                 is Resource.Success -> {
                     _uiState.value = _uiState.value.copy(isSubmitting = false, isSuccess = true)
                 }

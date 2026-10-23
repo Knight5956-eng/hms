@@ -29,11 +29,9 @@ class GlucoseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun logGlucoseReading(reading: GlucoseReading): Resource<GlucoseReading> {
-        // Save locally first (offline-first)
         val entity = reading.toEntity()
         glucoseDao.insertReading(entity)
 
-        // Queue for background sync
         val createDto = CreateGlucoseReadingDto(
             value = reading.value,
             context = reading.context.name,
@@ -50,7 +48,6 @@ class GlucoseRepositoryImpl @Inject constructor(
             )
         )
 
-        // Try direct sync
         try {
             val response = glucoseApi.logGlucoseReading(createDto)
             if (response.isSuccessful && response.body() != null) {
@@ -60,7 +57,6 @@ class GlucoseRepositoryImpl @Inject constructor(
                 return Resource.Success(remoteDto.toEntity(isSynced = true).toDomain())
             }
         } catch (_: Exception) {
-            // Keep in queue for background worker sync
         }
 
         return Resource.Success(reading)
@@ -95,7 +91,6 @@ class GlucoseRepositoryImpl @Inject constructor(
                         syncQueueDao.dequeue(item.id)
                     }
                 } catch (_: Exception) {
-                    // Backoff
                 }
             }
         }

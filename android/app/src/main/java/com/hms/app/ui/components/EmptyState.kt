@@ -34,7 +34,7 @@ fun EmptyState(
         if (!subtitle.isNullOrEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = subtitle,
+                text = subtitle!!,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )

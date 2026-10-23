@@ -21,6 +21,10 @@ object DatabaseModule {
 
     @Provides
     @Singleton
+    fun provideContext(@ApplicationContext context: Context): Context = context
+
+    @Provides
+    @Singleton
     fun provideDatabase(@ApplicationContext context: Context): HmsDatabase {
         return Room.databaseBuilder(
             context,

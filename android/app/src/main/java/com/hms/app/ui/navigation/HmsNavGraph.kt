@@ -1,13 +1,10 @@
 package com.hms.app.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.hms.app.data.local.TokenStore
 import com.hms.app.ui.screens.appointments.AppointmentsScreen
 import com.hms.app.ui.screens.auth.AcceptInvitationScreen
 import com.hms.app.ui.screens.auth.LoginScreen
@@ -24,15 +21,12 @@ import com.hms.app.ui.screens.refills.RefillsScreen
 
 @Composable
 fun HmsNavGraph(
-    tokenStore: TokenStore? = null,
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    startDestination: String = Routes.HOME
 ) {
-    val currentUser by (tokenStore?.currentUserFlow ?: kotlinx.coroutines.flow.MutableStateFlow(null)).collectAsState()
-    val initialDestination = if (tokenStore?.getAccessToken() != null || currentUser != null) Routes.HOME else Routes.LOGIN
-
     NavHost(
         navController = navController,
-        startDestination = initialDestination
+        startDestination = startDestination
     ) {
         composable(Routes.LOGIN) {
             LoginScreen(

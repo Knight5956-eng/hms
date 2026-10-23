@@ -1,8 +1,10 @@
 import React from 'react';
-import { AppRouter } from './routes';
 
-export const App: React.FC = () => {
-  return <AppRouter />;
-};
-
-export default App;
+export default function App() {
+  return (
+    <div style={{ fontFamily: 'sans-serif', padding: '2rem' }}>
+      <h1>HMS Kenya Platform</h1>
+      <p>Digital Health Platform for Type 2 Diabetes Glycemic Control</p>
+    </div>
+  );
+}

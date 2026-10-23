@@ -12,12 +12,10 @@ class AuthInterceptor @Inject constructor(
         val requestBuilder = chain.request().newBuilder()
 
         val token = tokenStore.getAccessToken()
-        if (!token.isNull_or_empty()) {
+        if (!token.isNullOrEmpty()) {
             requestBuilder.addHeader("Authorization", "Bearer $token")
         }
 
         return chain.proceed(requestBuilder.build())
     }
 }
-
-private fun String?.isNull_or_empty(): Boolean = this == null || this.isEmpty()
