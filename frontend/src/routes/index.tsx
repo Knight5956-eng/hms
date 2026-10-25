@@ -11,6 +11,7 @@ import { AcceptInvitation } from '../portals/auth/pages/AcceptInvitation';
 // Patient
 import { PatientHome } from '../portals/patient/pages/Home';
 import { LogGlucose } from '../portals/patient/pages/LogGlucose';
+import { LearningHub } from '../portals/patient/pages/LearningHub';
 import { PatientHba1c } from '../portals/patient/pages/Hba1c';
 import { PatientMedications } from '../portals/patient/pages/Medications';
 import { PatientRefills } from '../portals/patient/pages/Refills';
@@ -57,6 +58,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/patient', element: <AppShell><PatientHome /></AppShell> },
       { path: '/patient/log-glucose', element: <AppShell><LogGlucose /></AppShell> },
+      { path: '/patient/learning', element: <AppShell><LearningHub /></AppShell> },
       { path: '/patient/hba1c', element: <AppShell><PatientHba1c /></AppShell> },
       { path: '/patient/medications', element: <AppShell><PatientMedications /></AppShell> },
       { path: '/patient/refills', element: <AppShell><PatientRefills /></AppShell> },

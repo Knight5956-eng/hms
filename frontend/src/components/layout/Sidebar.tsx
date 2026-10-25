@@ -13,6 +13,7 @@ import {
   Download,
   Home,
   UserCheck,
+  BookOpen,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types';
@@ -46,8 +47,9 @@ export const Sidebar: React.FC = () => {
   ];
 
   const patientNav = [
-    { name: 'Home', path: '/patient', icon: Home },
+    { name: 'Overview', path: '/patient', icon: Home },
     { name: 'Log Glucose', path: '/patient/log-glucose', icon: Activity },
+    { name: 'Learning Hub', path: '/patient/learning', icon: BookOpen },
     { name: 'HbA1c', path: '/patient/hba1c', icon: BarChart3 },
     { name: 'Medications', path: '/patient/medications', icon: Pill },
     { name: 'Appointments', path: '/patient/appointments', icon: Calendar },
@@ -67,10 +69,13 @@ export const Sidebar: React.FC = () => {
   return (
     <aside className="w-64 bg-surface border-r border-border hidden md:flex flex-col h-screen sticky top-0 p-4 gap-6">
       <div className="flex items-center gap-3 px-2">
-        <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-lg">
+        <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-lg shadow-xs">
           H
         </div>
-        <span className="font-bold text-lg text-text">HMS Care</span>
+        <div className="flex flex-col">
+          <span className="font-extrabold text-base text-text leading-tight">HMS Care</span>
+          <span className="text-[10px] text-primary font-semibold">Glycemic Management</span>
+        </div>
       </div>
 
       <nav className="flex flex-col gap-1 flex-1">
@@ -80,7 +85,7 @@ export const Sidebar: React.FC = () => {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path.split('/').length <= 2}
+              end={item.path === '/patient' || item.path === '/super-admin' || item.path === '/hospital-admin' || item.path === '/clinician'}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive
