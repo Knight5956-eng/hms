@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from './ProtectedRoute';
 import { AppShell } from '../components/layout/AppShell';
 
+import { LandingPage } from '../pages/LandingPage';
 import { Login } from '../portals/auth/pages/Login';
 import { ForgotPassword } from '../portals/auth/pages/ForgotPassword';
 import { ResetPassword } from '../portals/auth/pages/ResetPassword';
@@ -46,6 +47,7 @@ import { SuperAdminSystemSettings } from '../portals/super-admin/pages/SystemSet
 import { UserRole } from '../types';
 
 const router = createBrowserRouter([
+  { path: '/', element: <LandingPage /> },
   { path: '/login', element: <Login /> },
   { path: '/forgot-password', element: <ForgotPassword /> },
   { path: '/reset-password', element: <ResetPassword /> },
@@ -114,7 +116,7 @@ const router = createBrowserRouter([
     ],
   },
 
-  { path: '*', element: <Navigate to="/login" replace /> },
+  { path: '*', element: <Navigate to="/" replace /> },
 ]);
 
 export const AppRouter: React.FC = () => {

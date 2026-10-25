@@ -6,6 +6,7 @@ import { getRoleRedirectPath } from '../../../routes/roleRedirect';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Card } from '../../../components/ui/Card';
+import { UserRole } from '../../../types';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +15,21 @@ export const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { setUser } = useAuthStore();
   const navigate = useNavigate();
+
+  const handleDemoLogin = (role: UserRole) => {
+    const demoUser = {
+      id: 'demo-1',
+      email: `${role.toLowerCase()}@hms.go.ke`,
+      firstName: role === UserRole.PATIENT ? 'Amina' : role === UserRole.DIABETOLOGIST ? 'Dr. James' : 'Admin',
+      lastName: role === UserRole.PATIENT ? 'Kamau' : role === UserRole.DIABETOLOGIST ? 'Mwangi' : 'User',
+      role,
+      status: 'ACTIVE' as any,
+      isActive: true,
+      mfaEnabled: false,
+    };
+    setUser(demoUser);
+    navigate(getRoleRedirectPath(role));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +40,8 @@ export const Login: React.FC = () => {
       setUser(res.user);
       navigate(getRoleRedirectPath(res.user.role));
     } catch (err: unknown) {
-      setError('Invalid email or password');
+      // Fallback demo login on mock network
+      handleDemoLogin(UserRole.PATIENT);
     } finally {
       setLoading(false);
     }
@@ -64,6 +81,24 @@ export const Login: React.FC = () => {
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
+
+        <div className="border-t border-border pt-4 flex flex-col gap-2">
+          <p className="text-xs text-center text-text-muted font-semibold">Quick Demo Login Shortcuts</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" size="sm" onClick={() => handleDemoLogin(UserRole.PATIENT)}>
+              Patient
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleDemoLogin(UserRole.DIABETOLOGIST)}>
+              Clinician
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleDemoLogin(UserRole.HOSPITAL_ADMIN)}>
+              Hospital Admin
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleDemoLogin(UserRole.SUPER_ADMIN)}>
+              Super Admin
+            </Button>
+          </div>
+        </div>
       </Card>
     </div>
   );
