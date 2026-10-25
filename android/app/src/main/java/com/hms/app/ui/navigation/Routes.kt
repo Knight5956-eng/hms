@@ -1,6 +1,7 @@
 package com.hms.app.ui.navigation
 
 object Routes {
+    const val LANDING = "landing"
     const val LOGIN = "login"
     const val ACCEPT_INVITATION = "accept_invitation"
     const val HOME = "home"

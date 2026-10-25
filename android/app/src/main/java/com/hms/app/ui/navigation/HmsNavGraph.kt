@@ -21,6 +21,7 @@ import com.hms.app.ui.screens.home.HomeScreen
 import com.hms.app.ui.screens.medications.MedicationsScreen
 import com.hms.app.ui.screens.profile.ProfileScreen
 import com.hms.app.ui.screens.refills.RefillsScreen
+import com.hms.app.ui.screens.welcome.LandingScreen
 
 @Composable
 fun HmsNavGraph(
@@ -28,17 +29,24 @@ fun HmsNavGraph(
     navController: NavHostController = rememberNavController()
 ) {
     val currentUser by (tokenStore?.currentUserFlow ?: kotlinx.coroutines.flow.MutableStateFlow(null)).collectAsState()
-    val initialDestination = if (tokenStore?.getAccessToken() != null || currentUser != null) Routes.HOME else Routes.LOGIN
+    val initialDestination = if (tokenStore?.getAccessToken() != null || currentUser != null) Routes.HOME else Routes.LANDING
 
     NavHost(
         navController = navController,
         startDestination = initialDestination
     ) {
+        composable(Routes.LANDING) {
+            LandingScreen(
+                onGetStarted = { navController.navigate(Routes.LOGIN) },
+                onSignIn = { navController.navigate(Routes.LOGIN) }
+            )
+        }
+
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLoginSuccess = {
                     navController.navigate(Routes.HOME) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
+                        popUpTo(Routes.LANDING) { inclusive = true }
                     }
                 }
             )
@@ -127,7 +135,7 @@ fun HmsNavGraph(
         composable(Routes.PROFILE) {
             ProfileScreen(
                 onLoggedOut = {
-                    navController.navigate(Routes.LOGIN) {
+                    navController.navigate(Routes.LANDING) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
