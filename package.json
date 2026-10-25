@@ -3,9 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build": "cd frontend && npm run build && cd .. && rm -rf dist && cp -r frontend/dist ./dist",
-    "test": "cd frontend && npm test",
-    "lint": "cd frontend && npm run lint"
+    "prebuild": "npm --prefix frontend install",
+    "build": "npm --prefix frontend run build && rm -rf dist && cp -r frontend/dist ./dist",
+    "test": "npm --prefix frontend test",
+    "lint": "npm --prefix frontend run lint"
   },
   "dependencies": {
     "autoprefixer": "^10.4.17",
