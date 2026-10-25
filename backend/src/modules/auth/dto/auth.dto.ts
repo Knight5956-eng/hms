@@ -50,3 +50,33 @@ export class AcceptInvitationDto {
   @IsNotEmpty()
   lastName: string;
 }
+
+export class RegisterDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
+
+  @IsString()
+  phone?: string;
+
+  @IsString()
+  tenantId?: string;
+
+  @IsString()
+  dateOfBirth?: string;
+
+  @IsString()
+  sex?: string;
+}

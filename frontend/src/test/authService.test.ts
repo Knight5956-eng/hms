@@ -85,6 +85,46 @@ describe('authService', () => {
     expect(getAccessToken()).toBe('nested-token-789');
   });
 
+  it('should process register with backend response structure and set access token', async () => {
+    const mockUser = {
+      id: 'registered-user-1',
+      email: 'amina@hms.go.ke',
+      firstName: 'Amina',
+      lastName: 'Kamau',
+      role: UserRole.PATIENT,
+      tenantId: 'tenant-1',
+      isActive: true,
+    };
+
+    const mockResponse = {
+      data: {
+        accessToken: 'reg-access-token-123',
+        refreshToken: 'reg-refresh-token-456',
+        user: mockUser,
+      },
+    };
+
+    vi.mocked(apiClient.post).mockResolvedValueOnce(mockResponse);
+
+    const result = await authService.register({
+      email: 'amina@hms.go.ke',
+      password: 'Password123!',
+      firstName: 'Amina',
+      lastName: 'Kamau',
+      phone: '+254712345678',
+    });
+
+    expect(apiClient.post).toHaveBeenCalledWith('/auth/register', {
+      email: 'amina@hms.go.ke',
+      password: 'Password123!',
+      firstName: 'Amina',
+      lastName: 'Kamau',
+      phone: '+254712345678',
+    });
+    expect(result).toEqual(mockResponse.data);
+    expect(getAccessToken()).toBe('reg-access-token-123');
+  });
+
   it('should clear tokens on logout', async () => {
     vi.mocked(apiClient.post).mockResolvedValueOnce({ data: {} });
 

@@ -1,7 +1,7 @@
 import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginDto, RefreshTokenDto, ForgotPasswordDto, ResetPasswordDto, AcceptInvitationDto } from './dto/auth.dto';
+import { LoginDto, RefreshTokenDto, ForgotPasswordDto, ResetPasswordDto, AcceptInvitationDto, RegisterDto } from './dto/auth.dto';
 import { Public, CurrentUser } from '../../common/decorators/auth.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
@@ -56,5 +56,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Accept invitation and register account' })
   acceptInvitation(@Body() dto: AcceptInvitationDto) {
     return this.authService.acceptInvitation(dto);
+  }
+
+  @Public()
+  @HttpCode(HttpStatus.CREATED)
+  @Post('register')
+  @ApiOperation({ summary: 'Register a new patient account' })
+  register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto);
   }
 }
