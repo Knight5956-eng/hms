@@ -40,7 +40,7 @@ export const Login: React.FC = () => {
       const res = await authService.login({ email, password });
       setUser(res.user);
       navigate(getRoleRedirectPath(res.user.role));
-    } catch (err: unknown) {
+    } catch {
       handlePortalAccess(UserRole.PATIENT);
     } finally {
       setLoading(false);

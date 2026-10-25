@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build": "cd frontend && npm install --include=dev && npm run build && cd .. && rm -rf dist && cp -r frontend/dist ./dist",
+    "build": "cd frontend && npm run build && cd .. && rm -rf dist && cp -r frontend/dist ./dist",
     "test": "cd frontend && npm test",
     "lint": "cd frontend && npm run lint"
   },
