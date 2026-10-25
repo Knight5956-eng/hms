@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException, BadRequestException, NotFoundExcepti
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
-import { LoginDto, RefreshTokenDto, ForgotPasswordDto, ResetPasswordDto, AcceptInvitationDto } from './dto/auth.dto';
+import { LoginDto, RefreshTokenDto, ForgotPasswordDto, ResetPasswordDto, AcceptInvitationDto, RegisterDto } from './dto/auth.dto';
 import * as argon2 from 'argon2';
 import * as crypto from 'crypto';
 
@@ -204,5 +204,93 @@ export class AuthService {
     });
 
     return { message: 'Invitation accepted successfully', userId: user.id };
+  }
+
+  async register(dto: RegisterDto) {
+    const normalizedEmail = dto.email.toLowerCase();
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('User with this email already exists');
+    }
+
+    let tenantId = dto.tenantId;
+    if (!tenantId) {
+      const defaultTenant = await this.prisma.tenant.findFirst({
+        where: { status: 'ACTIVE' },
+      });
+      tenantId = defaultTenant?.id ?? undefined;
+    }
+
+    const passwordHash = await argon2.hash(dto.password);
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: normalizedEmail,
+        passwordHash,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        phone: dto.phone,
+        tenantId,
+        role: 'PATIENT',
+        status: 'ACTIVE',
+      },
+      include: { tenant: true },
+    });
+
+    if (tenantId) {
+      const dob = dto.dateOfBirth ? new Date(dto.dateOfBirth) : new Date('1990-01-01');
+      const sex = dto.sex || 'UNDISCLOSED';
+      await this.prisma.patientProfile.create({
+        data: {
+          userId: user.id,
+          tenantId,
+          dateOfBirth: dob,
+          sex,
+        },
+      });
+    }
+
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId,
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('app.jwt.accessSecret'),
+      expiresIn: this.configService.get<string>('app.jwt.accessTtl') || '15m',
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('app.jwt.refreshSecret'),
+      expiresIn: this.configService.get<string>('app.jwt.refreshTtl') || '7d',
+    });
+
+    const refreshTokenHash = await argon2.hash(refreshToken);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        refreshTokenHash,
+        lastLoginAt: new Date(),
+      },
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        tenantId: user.tenantId,
+        tenantName: user.tenant?.name,
+      },
+    };
   }
 }

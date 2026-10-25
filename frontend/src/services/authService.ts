@@ -11,6 +11,24 @@ export const authService = {
     return response.data;
   },
 
+  async register(data: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    tenantId?: string;
+    dateOfBirth?: string;
+    sex?: string;
+  }): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>('/auth/register', data);
+    const token = response.data.tokens?.accessToken || response.data.accessToken;
+    if (token) {
+      setAccessToken(token);
+    }
+    return response.data;
+  },
+
   async logout(): Promise<void> {
     try {
       await apiClient.post('/auth/logout');

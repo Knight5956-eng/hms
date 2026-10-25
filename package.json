@@ -1,0 +1,8 @@
+{
+  "name": "hms-monorepo",
+  "private": true,
+  "scripts": {
+    "prebuild": "npm --prefix frontend install",
+    "build": "npm --prefix frontend run build && rm -rf dist && cp -r frontend/dist ./dist"
+  }
+}

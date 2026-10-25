@@ -3,7 +3,7 @@ import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from './ProtectedRoute';
 import { AppShell } from '../components/layout/AppShell';
 
-import { Login } from '../portals/auth/pages/Login';
+import { LandingPage } from '../portals/landing/pages/LandingPage';
 import { ForgotPassword } from '../portals/auth/pages/ForgotPassword';
 import { ResetPassword } from '../portals/auth/pages/ResetPassword';
 import { AcceptInvitation } from '../portals/auth/pages/AcceptInvitation';
@@ -46,7 +46,9 @@ import { SuperAdminSystemSettings } from '../portals/super-admin/pages/SystemSet
 import { UserRole } from '../types';
 
 const router = createBrowserRouter([
-  { path: '/login', element: <Login /> },
+  { path: '/', element: <LandingPage /> },
+  { path: '/login', element: <LandingPage /> },
+  { path: '/register', element: <LandingPage /> },
   { path: '/forgot-password', element: <ForgotPassword /> },
   { path: '/reset-password', element: <ResetPassword /> },
   { path: '/accept-invitation', element: <AcceptInvitation /> },
@@ -114,7 +116,7 @@ const router = createBrowserRouter([
     ],
   },
 
-  { path: '*', element: <Navigate to="/login" replace /> },
+  { path: '*', element: <Navigate to="/" replace /> },
 ]);
 
 export const AppRouter: React.FC = () => {
