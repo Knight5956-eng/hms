@@ -1,0 +1,16 @@
+{
+  "name": "hms",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "prebuild": "npm --prefix frontend install",
+    "build": "npm --prefix frontend run build && rm -rf dist && cp -r frontend/dist ./dist",
+    "test": "npm --prefix frontend test",
+    "lint": "npm --prefix frontend run lint"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1"
+  }
+}
